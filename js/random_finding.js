@@ -540,7 +540,7 @@
         var gEnter;
 
         var strategyRunner = 'standing';
-        var strategyChaser = 'avoiding';
+        var strategyChaser = 'random';
 
         var runnerDirection = [1,1];
         var chaserDirection = [-1,-1];
@@ -552,14 +552,21 @@
         function createEmptyGrid() {
             var emptyGrid = [];
             for (var i = 0; i < numPointsX; i++) {
-                var thisRow = [];
+                var theseRows = [];
 
-                for (var j = 0; j < numPointsY; j++) 
-                    thisRow.push(0);
+                for (var j = 0; j < numPointsY; j++)  {
+                    var thisRow = [];
+                    for (var k = 0; k < numPointsY; k++)  {
 
-                emptyGrid.push(thisRow);
+                        thisRow.push(0);
+                    }
+                    theseRows.push(thisRow);
+                }
+
+                emptyGrid.push(theseRows);
             }
 
+            console.log('emptyGrid:', emptyGrid);
             return emptyGrid;
         }
 
@@ -620,13 +627,14 @@
 
             function randomDirection() {
                 return [Math.floor(Math.random() * 3) - 1,
+                    Math.floor(Math.random() * 3) - 1,
                     Math.floor(Math.random() * 3) - 1];
             }
 
             function isValidPosition(position) {
-                if (position[0] < 0 || position[1] < [0])
+                if (position[0] < 0 || position[1] < 0 || position[2] < 0)
                     return false;
-                if (position[0] >= numPointsX || position[1] >= numPointsY)
+                if (position[0] >= numPointsX || position[1] >= numPointsY || position[2] >= numPointsY)
                     return false;
 
                 return true;
@@ -634,13 +642,23 @@
 
             function addPosition(position, direction) {
                 return [position[0] + direction[0],
-                    position[1] + direction[1]];
+                    position[1] + direction[1],
+                    position[2] + direction[2]];
             }
 
             function potentialMoves(currentPosition) {
-                var moves = [[-1,-1],[-1,0],[-1,1],
-                                      [0,1],[0,-1],
-                                      [1,-1],[1,0],[1,0]];
+                var moves = [[-1,-1,-1],[-1,-1,0], [-1,-1,1],
+                             [-1, 0,-1],[-1, 0, 0], [-1,0,1],
+                             [-1, 1,-1],[-1, 1, 0], [-1,1,1],
+
+                             [0, -1,-1],[0, -1, 0], [0,-1,1],
+                             [0, 0,-1],[0, 0, 0], [0,0,1],
+                             [0, 1,-1],[0, 1, 0], [0,1,1],
+
+                             [1, -1,-1],[1, -1, 0], [1,-1,1],
+                             [1, 0,-1],[1, 0, 0], [1, 0,1],
+                             [1, 1,-1],[1, 1, 0], [1, 1,1]];
+
                 moves = moves.map(function(d) {
                     return addPosition(currentPosition, d);
                 });
@@ -661,11 +679,14 @@
             function getAvoidingMove(currentPosition, timesVisited) {
                 var validPositions = potentialMoves(currentPosition);
                 validPositions = validPositions.map(function(d) {
-                    return [d, timesVisited[d[0]][d[1]]];
+                    return [d, timesVisited[d[0]][d[1]][d[2]]];
                 }).sort(function(a,b) { return a[1] - b[1]; })
 
                 //take all equally good positions
-                validPositions = validPositions.filter(function(d) { return d[1] == validPositions[0][1]; });
+                validPositions = validPositions.filter(function(d) { 
+                    console.log('d:', d, validPositions[0]);
+                    
+                    return d[1] == validPositions[0][1]; });
                 shuffle(validPositions);
                 
                 console.log('validPositions:', validPositions[0], validPositions[1], validPositions[2]);
@@ -703,11 +724,12 @@
                 var prevPosRunner = runner.data()[0];
                 var prevPosChaser = chaser.data()[0];
 
-                timesVisitedRunner[prevPosRunner[0]][prevPosRunner[1]] += 1;
-                timesVisitedChaser[prevPosChaser[0]][prevPosChaser[1]] += 1;
+                timesVisitedRunner[prevPosRunner[0]][prevPosRunner[1]][prevPosRunner[2]] += 1;
+                timesVisitedChaser[prevPosChaser[0]][prevPosChaser[1]][prevPosChaser[2]] += 1;
 
                 if (chaser.data()[0][0] == runner.data()[0][0] &&
-                    chaser.data()[0][1] == runner.data()[0][1]) {
+                    chaser.data()[0][1] == runner.data()[0][1] &&
+                    chaser.data()[0][2] == runner.data()[0][2]) {
                     stepCounts.push(steps);
 
                 timesVisitedRunner = createEmptyGrid();
@@ -802,6 +824,7 @@
 
         function randomPosition() {
             return [Math.floor(Math.random() * numPointsX),
+                Math.floor(Math.random() * numPointsY),
                 Math.floor(Math.random() * numPointsY)];
         }
 
