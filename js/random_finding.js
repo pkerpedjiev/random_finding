@@ -77,7 +77,7 @@
             .attr("text-anchor", "middle")
             .attr("x", width / 2)
             .attr("y", height + 30)
-            .text('Moves to meeting');
+            .text('log(Moves to meeting)');
 
             svg.append("text")
             .attr("class", "histogram-label")
@@ -176,11 +176,11 @@
         }
 
         chart.updateData = function(newValues) {
-            xScale.domain([-0.01, d3.max(newValues)]);
+            xScale.domain([-0.01, Math.log(d3.max(newValues)+1)]);
 
             var data = d3.layout.histogram()
             .bins(xScale.ticks(20))
-            (newValues);
+            (newValues.map(function(d) { return Math.log(d+1); }));
 
             yScale.domain([0, d3.max(data, function(d) { return d.y; })]);
 
@@ -405,7 +405,6 @@
             .text(function(d) { return d.name; })
             .property('selected', function(d) { return d.value === oldChart.transitionDuration(); });
 
-            console.log(oldChart.strategyRunner());
             optionsStrategy1 = selectStrategy1.selectAll('option')
             .data(optionStrategies)
             .enter()
@@ -441,13 +440,11 @@
             selectedIndex = selectStrategy1.property('selectedIndex');
             data           = optionsStrategy1[0][selectedIndex].__data__;
 
-            console.log('data:', data);
             newChart.strategyRunner(data);
 
             selectedIndex = selectStrategy2.property('selectedIndex');
             data           = optionsStrategy2[0][selectedIndex].__data__;
 
-            console.log('dataChaser:', data);
             newChart.strategyChaser(data);
 
 
@@ -468,7 +465,6 @@
             var selectedIndex = selectXValues.property('selectedIndex'),
                     data          = optionsX[0][selectedIndex].__data__;
 
-                    console.log('data:', data);
 
                 if (oldChart !== null) {
                     /*
@@ -483,7 +479,6 @@
         function yChange() {
             var selectedIndex = selectYValues.property('selectedIndex'),
                     data          = optionsY[0][selectedIndex].__data__;
-                console.log('data:', data);
 
                 if (oldChart !== null) {
                     /*
@@ -499,7 +494,6 @@
             var selectedIndex = selectSpeedValues.property('selectedIndex'),
                     data          = optionsSpeed[0][selectedIndex].__data__;
 
-                    console.log('data', data)
                     if (oldChart !== null) {
                         oldChart.transitionDuration(data.value);
                     }
@@ -574,7 +568,6 @@
             .width(histogramWidth)
             .height(height - 50);
 
-            console.log('blah 2;');
             var gHistogram = svg.append('g')
             .attr('transform', 'translate(' + (margin.left + width + 40 ) + ',' + (margin.bottom + 14 + 20) + ')')
             .classed('histogram', true)
@@ -668,7 +661,6 @@
                 validPositions = validPositions.filter(function(d) { return d[1] == validPositions[0][1]; });
                 shuffle(validPositions);
                 
-                console.log('validPositions:', validPositions[0], validPositions[1], validPositions[2]);
                 return validPositions[0][0];
             }
 
@@ -713,7 +705,6 @@
                 timesVisitedRunner = createEmptyGrid();
                 timesVisitedChaser = createEmptyGrid();
 
-                //console.log('stepCounts:', stepCounts);
 
                 hist.updateData(stepCounts);
                 explode(gEnter, [xScale(chaser.data()[0][0]),
@@ -747,7 +738,6 @@
                     } else if (strategyChaser == 'random') {
                         newChaserPosition = addPosition(chaser.data()[0],
                                                         randomDirection());
-                        console.log('newChaserPosition', newChaserPosition);
                     } else if (strategyChaser == 'avoiding') {
                         newChaserPosition = getAvoidingMove(chaser.data()[0],
                                                            timesVisitedChaser);
@@ -818,7 +808,6 @@
                 xMargin = (width - (numPointsX - 1) * gridWidthY) / 2;
             }
 
-            console.log('yMargin', yMargin);
 
             xScale = d3.scale.ordinal().domain(d3.range(numPointsX))
              .rangePoints([xMargin,width-xMargin]);
@@ -941,7 +930,6 @@
 
         return function(d,i,a) {
             var dThis = this;
-            //console.log('d3.select(dThis)', d3.select(dThis).attr('fill'));
 
             return function(t) {
 
